@@ -9,9 +9,10 @@ state("SonicMania", "Mania Plus V1.05.0713")
 	byte EREggmanHealth : 0x475B44;
 	byte ERHeavyHealth : 0x4715CC;
 	
-	// Character position, used to check when the Puyo boss fight has started
-	short Character1PositionX : 0x45E9A2;
+	// Values for the Puyo split
+	short Character1PositionX : 0x45E9A2; // Position is used to check when the player is in the Puyo area
 	short Character1PositionY : 0x45E9A6;
+	byte CharacterControl : 0x45E9EC; // If 0, the player disappears and control is taken away
 	
 	// Values for resets
 	byte GameState : 0xA48776; // 8 when Dev Menu is open
@@ -90,7 +91,8 @@ split
 	vars.UpdateCount++;
 
 	// Split whenever it starts a new level
-	if (current.CurrentLevel != old.CurrentLevel && current.CurrentLevel > vars.LatestLevel){
+	if (current.CurrentLevel != old.CurrentLevel && current.CurrentLevel > vars.LatestLevel)
+	{
 		print("Attempting split for new level! Current: " + current.CurrentLevel);
 		vars.LatestLevel = current.CurrentLevel;
 		switch ((byte)current.CurrentLevel)
@@ -111,7 +113,7 @@ split
 				vars.ScoreTallySplit = true;
 				return false;
 			case 38: // GH1+, make sure enough time has passed so it doesn't split on a NG+ run
-				return (vars.UpdateCount > 120);
+				return vars.UpdateCount > 120;
 			default:
 				// Workaround to avoid a potential false start
 				if (vars.UpdateCount < 120)
@@ -123,8 +125,8 @@ split
 		}
 	}
 	
-	// Split for Puyo if that option is enabled. Checks if the player position is where it gets locked into at the start of the boss
-	if (vars.PuyoSplit && (current.CurrentLevel == 12 || current.CurrentLevel == 41) && current.Character1PositionX == 7140 && current.Character1PositionY == 2316)
+	// Split for Puyo if that option is enabled. Checks if the player position is in the Puyo area and that control has been taken away. There's got to be a less complicated way to check than this but this works for now
+	if (vars.PuyoSplit && (current.CurrentLevel == 12 || current.CurrentLevel == 41) && current.CharacterControl == 0 && current.Character1PositionX > 7125 && current.Character1PositionX < 7155 && current.Character1PositionY > 2300 && current.Character1PositionY < 2330)
 	{
 		print("Split for Puyo boss!");
 		vars.PuyoSplit = false;
