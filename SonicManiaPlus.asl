@@ -142,7 +142,7 @@ split
 	}
 	
 	// Split when the TM2 boss dies if the game ends there
-	if (vars.EndOnTM && current.TM2BossHealth == 0)
+	if (vars.EndOnTM && (current.TM2BossHealth == 0 || current.TM2BossHealth == 255))
 	{
 		print("Split for TM ending!");
 		vars.EndOnTM = false;
