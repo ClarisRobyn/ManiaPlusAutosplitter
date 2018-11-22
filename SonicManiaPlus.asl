@@ -12,7 +12,7 @@ state("SonicMania", "Mania Plus V1.05.0713")
 	// Values for the Puyo split
 	short Character1PositionX : 0x45E9A2; // Position is used to check when the player is in the Puyo area
 	short Character1PositionY : 0x45E9A6;
-	byte CharacterControl : 0x45E9EC; // If 0, the player disappears and control is taken away
+	byte CharacterControl : 0x45E9EC; // If 0, the player disappears and control is taken away. This is also used for avoiding false splits upon death for the final bosses
 	
 	// Values for resets
 	byte GameState : 0xA48776; // 8 when Dev Menu is open
@@ -142,7 +142,7 @@ split
 	}
 	
 	// Split when the TM2 boss dies if the game ends there
-	if (vars.EndOnTM && (current.TM2BossHealth == 0 || current.TM2BossHealth == 255))
+	if (vars.EndOnTM && (current.TM2BossHealth == 0 || current.TM2BossHealth == 255) && old.CharacterControl == 2)
 	{
 		print("Split for TM ending!");
 		vars.EndOnTM = false;
@@ -150,7 +150,7 @@ split
 	}
 	
 	// Split for ER when both bosses are dead
-	if (vars.EndOnER && current.EREggmanHealth == 0 && current.ERHeavyHealth == 0)
+	if (vars.EndOnER && current.EREggmanHealth == 0 && current.ERHeavyHealth == 0 && old.CharacterControl == 2)
 	{
 		print("Split for ER ending!");
 		vars.EndOnER = false;
