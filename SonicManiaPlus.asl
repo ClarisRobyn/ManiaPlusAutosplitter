@@ -28,6 +28,34 @@ state("SonicMania", "Mania Plus V1.05.0713")
 	byte Character1 : 0xA9C5D4, 0x4;
 	byte Character2 : 0xA9C5D4, 0x5;
 }
+state("SonicMania", "Mania Plus V1.06.0503")
+{
+	// Values for splits
+	byte CurrentLevel : 0x4459B8, 0x444358;
+	byte ScoreTallyCheck : 0x46DFC6;
+	byte TM2BossHealth : 0x481D14;
+	byte EREggmanHealth : 0x47C63C;
+	byte ERHeavyHealth : 0x480BB4;
+	
+	// Values for the Puyo split
+	short Character1PositionX : 0x469A12; // Position is used to check when the player is in the Puyo area
+	short Character1PositionY : 0x469A16;
+	byte CharacterControl : 0x469A5C; // If 0, the player disappears and control is taken away. This is also used for avoiding false splits upon death for the final bosses
+	
+	// Values for resets
+	byte GameState : 0xA535E2; // 8 when Dev Menu is open
+	byte SavedLevel : 0xA535C4; // Used to check when on the menu, as "CurrentLevel" does not work for that	
+	
+	// Values for starting the run. I have no idea what exactly the next two values are, but they seem to work for these purposes
+	byte StartCheck : 0x4DB218; // Is 80 on the menu and changes to 128 when a game is started
+	byte StartingLevelCheck : 0x945D19; // Is 40 for new game or Green Hill (Mania), or 0 for new game or Green Hill (Encore), or after exiting back to the menu. Anything else means a different zone was selected
+	byte DebugEnabled : 0x4C1F24; // 0 if disabled, 1 if enabled
+	
+	// Emeralds and characters for checking for Egg Reverie
+	byte Emeralds : 0xAC6A20, 0x10, 0x70; // One bit for each emerald, 0x7F when all emeralds are collected
+	byte Character1 : 0x4459B8, 0x4;
+	byte Character2 : 0x4459B8, 0x5;
+}
 
 startup
 {
@@ -40,11 +68,13 @@ init
 	// This is how most other scripts I've looked at check for game version, so I'm just assuming this works fine
 	if (modules.First().ModuleMemorySize == 0x72E8000)
 		version = "Mania Plus V1.05.0713";
+	else if (modules.First().ModuleMemorySize == 0xB56000)
+		version = "Mania Plus V1.06.0503";
 }
 
 update
 {
-	// Don't run if the game isn't V1.05.0713
+	// Don't run if the game version isn't supported
 	if (version == "")
 		return false;
 		
@@ -66,7 +96,7 @@ update
 start
 {
 	// Doesn't start if Debug is enabled. Doesn't start if beginning from a zone later than Green Hill
-	if (current.StartCheck == 128 && old.StartCheck == 80 && current.DebugEnabled == 0 && (current.StartingLevelCheck == 40 || current.StartingLevelCheck == 0))
+	if (current.StartCheck == 128 && old.StartCheck == 80 && current.DebugEnabled == 0 && (current.StartingLevelCheck == 40 || current.StartingLevelCheck == 0 || current.StartingLevelCheck == 1))
 	{
 		vars.EndOnTM = false;
 		vars.EndOnER = false;
