@@ -57,6 +57,35 @@ state("SonicMania", "Mania Plus V1.06.0503")
 	byte Character2 : 0x4459B8, 0x5;
 }
 
+state("SonicMania", "Mania Epic Store version")
+{
+	// Values for splits
+	byte CurrentLevel : 0x1CAAA0, 0x34, 0x70;
+	byte ScoreTallyCheck : 0x426B7E;
+	byte TM2BossHealth : 0x43A8CC;
+	byte EREggmanHealth : 0x4351F4;
+	byte ERHeavyHealth : 0x43976C;
+	
+	// Values for the Puyo split
+	short Character1PositionX : 0x4225CA; // Position is used to check when the player is in the Puyo area
+	short Character1PositionY : 0x4225CE;
+	byte CharacterControl : 0x422614; // If 0, the player disappears and control is taken away. This is also used for avoiding false splits upon death for the final bosses
+	
+	// Values for resets
+	byte GameState : 0xA0C116; // 8 when Dev Menu is open
+	byte SavedLevel : 0xA0C0F8; // Used to check when on the menu, as "CurrentLevel" does not work for that	
+	
+	// Values for starting the run. I have no idea what exactly the next two values are, but they seem to work for these purposes
+	byte StartCheck : 0x493DD0; // Is 80 on the menu and changes to 128 when a game is started. In the EPIC store version, it's 128 on the menu and 176 when the game is started
+	byte StartingLevelCheck : 0x6A5791; // Is 40 for new game or Green Hill (Mania), or 0 for new game or Green Hill (Encore), or after exiting back to the menu. Anything else means a different zone was selected
+	byte DebugEnabled : 0x47AADC; // 0 if disabled, 1 if enabled
+	
+	// Emeralds and characters for checking for Egg Reverie
+	byte Emeralds : 0xA7F4C8, 0x10, 0x70; // One bit for each emerald, 0x7F when all emeralds are collected
+	byte Character1 : 0x3FE500, 0x4;
+	byte Character2 : 0x3FE500, 0x5;
+}
+
 startup
 {
 	settings.Add("PuyoSplit", false, "Split at the start of the Chemical Plant 2 Mean Bean boss");	
@@ -70,6 +99,8 @@ init
 		version = "Mania Plus V1.05.0713";
 	else if (modules.First().ModuleMemorySize == 0xB56000)
 		version = "Mania Plus V1.06.0503";
+	else if (modules.First().ModuleMemorySize == 0xAE7000)
+		version = "Mania Epic Store version";
 }
 
 update
@@ -78,6 +109,9 @@ update
 	if (version == "")
 		return false;
 		
+	// Check if you're running the Epic store version, as it needs a special tweak on the startcheck veriable
+	if (version == "Mania Epic Store version" && current.StartCheck >= 128) current.StartCheck -= 48;
+	
 	// Check if it's the final level, first checking for Encore Mode
 	if (current.CurrentLevel == 64 && current.TM2BossHealth == 16) 
 	{
